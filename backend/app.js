@@ -9,6 +9,7 @@ const productsRoutes = require("./routes/products");
 const usersRoutes = require("./routes/users");
 const authJwt = require("./helpers/jwt");
 const errorHandler = require("./helpers/errror-handler");
+const orderRoutes = require("./routes/order");
 
 require("dotenv/config");
 
@@ -22,15 +23,16 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // Parse application/json
 app.use(bodyParser.json());
 app.use(morgan("tiny"));
-//app.use(authJwt());
 app.use(errorHandler);
 
 const api = process.env.API_URL;
 
 // ROUTER
+app.use(authJwt());
 app.use(`${api}/categories`, categoriesRoutes);
 app.use(`${api}/products`, productsRoutes);
 app.use(`${api}/users`, usersRoutes);
+app.use(`${api}/orders`, orderRoutes);
 
 mongoose
   .connect(process.env.DATABASE_URI, { dbName: "onlineshoppe-database" })
