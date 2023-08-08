@@ -1,6 +1,7 @@
 const { Order } = require("../models/order");
 const express = require("express");
 const { OrderItem } = require("../models/orderItem");
+const { route } = require("./products");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -30,6 +31,8 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
+    let totalOrderAmount = 0;
+
     const orderItemsIdsArray = await Promise.all(
       req.body.orderItems.map(async (orderItem) => {
         console.log(orderItem);
@@ -38,6 +41,11 @@ router.post("/", async (req, res) => {
           product: orderItem.product,
         });
         newOrderItem = await newOrderItem.save();
+
+        // CALC TOTAL ORDER AMOUNT
+        const populatePriceInOrderItem = await newOrderItem.populate("product");
+        totalOrderAmount +=
+          populatePriceInOrderItem.product.price * newOrderItem.quantity;
 
         return newOrderItem._id;
       })
@@ -52,7 +60,7 @@ router.post("/", async (req, res) => {
       country: req.body.country,
       phone: req.body.phone,
       status: req.body.status,
-      totalPrice: req.body.totalPrice,
+      totalPrice: totalOrderAmount,
       user: req.body.user,
     });
 
@@ -98,6 +106,18 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     return res.status(400).json({ success: false, error: error });
   }
+});
+
+router.get("/get/totalsales", async (req, res) => {
+  const totalSales = await Order.aggregate([
+    { $group: { _id: null, totalSales: { $sum: "$totalPrice" } } },
+  ]);
+
+  if (!totalSales) {
+    return res.status(400).send("The sales revenue cannot be generated");
+  }
+
+  res.status(200).json(totalSales.pop().totalSales);
 });
 
 module.exports = router;
