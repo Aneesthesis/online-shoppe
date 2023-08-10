@@ -21,6 +21,7 @@ app.options("*", cors());
 // Parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }));
 // Parse application/json
+app.use("/public/my-uploads", express.static(__dirname + "/public/my-uploads"));
 app.use(bodyParser.json());
 app.use(morgan("tiny"));
 app.use(errorHandler);

@@ -120,4 +120,13 @@ router.get("/get/totalsales", async (req, res) => {
   res.status(200).json(totalSales.pop().totalSales);
 });
 
+router.get("/get/count", async (req, res) => {
+  const ordersCount = await Order.countDocuments();
+  if (!ordersCount) res.status(500).json({ success: false });
+
+  res.json({
+    ordersCount,
+  });
+});
+
 module.exports = router;
